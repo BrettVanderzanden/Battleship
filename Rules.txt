@@ -1,0 +1,27 @@
+The game is played on four grids, two for each player. 
+The grids are  10×10 squares and the individual squares in the grid are identified by letter and number. (A-J along x axis and 1-10 along y axis)
+On one grid the player arranges ships and records the shots by the opponent. 
+On the other grid the player records his/her own shots.
+
+Before play begins, each player secretly arranges their ships on their primary grid. 
+Each ship occupies a number of consecutive squares on the grid, arranged either horizontally or vertically.
+The number of squares for each ship is determined by the type of the ship. 
+The ships cannot overlap (i.e., only one ship can occupy any given square in the grid). 
+The types and sizes of ships are as follows:
+
+Name				Size
+--------------------------
+Aircraft Carrier	5
+Battleship			4
+Submarine			3
+Destroyer			3
+Patrol Boat		2
+
+After the ships have been positioned, the game proceeds in a series of rounds. 
+In each round, each player takes a turn to attack a target square in the opponent's grid. 
+If it is a "miss", the attacked player marks their primary grid with a white peg. 
+If it is a "hit" they mark this on their own primary grid with a red peg. 
+The attacking player notes the hit or miss on their enemy grid with the appropriate color peg (red for "hit", white for "miss"), in order to build up a picture of the opponent's fleet.
+
+When all of the squares of a ship have been hit, the ship is sunk, and the player's hud draws a red X over the opponent's ship status icon.
+If all of a player's ships have been sunk, the game is over and their opponent wins.

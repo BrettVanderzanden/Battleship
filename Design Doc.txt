@@ -1,0 +1,9 @@
+Battleship.cpp - main entry point
+
+D2DRenderer.h/.cpp - 2D rendering initialization
+
+Game.h/.cpp - handles all game logic as well as AI logic
+
+Math.h/.cpp - some basic geometry handling
+
+Ship.h/.cpp - ship data

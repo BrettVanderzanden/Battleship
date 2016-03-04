@@ -26,7 +26,12 @@ class Game
 	BVRect bottomGrid;
 	BVRect infoRectTop;
 	BVRect infoRectBottom;
+	BVRect playerPlacer;
+	BVRect placeShip;
+	BVRect howToRotate;
 	BVRect turnInfoRect;
+	BVRect howToPlayText;
+	BVRect howToPlayDesc;
 	BVRect enemyShipsRemaining;
 	BVRect enemyShipStatus[5];
 	BVRect topTitle, bottomTitle;
@@ -40,6 +45,8 @@ class Game
 	BVPoint lastAIHit;
 
 	// gameover
+	BVRect gameOver;
+	BVRect gameWinnerRect;
 	BVRect newGame;
 	BVRect exitGame;
 
@@ -50,18 +57,20 @@ class Game
 	short spaceCurr = 1;
 
 	std::wstring noticeText[2];
+	std::wstring howToPlay;
 
 	void ClickPlacement(BVPoint mousePos, int player);
 	void ClickGameplay(BVPoint mousePos, int player);
 	void ClickGameOver(BVPoint mousePos);
 
 	void DrawMenu();
-	void DrawPlacementPhase();
+	void DrawPlacementPhase(int player);
 	void DrawGameplay(int player);
 	void DrawGameOver();
-	void NextPhase();
 	void HideShips(int player);
 	void ShowShips(int player);
+
+	void NextPhase();
 	void DamageShip(int player, int ship);
 	bool ValidAttackPosition(int player, int x, int y);
 	bool AlreadyAttacked(int target);

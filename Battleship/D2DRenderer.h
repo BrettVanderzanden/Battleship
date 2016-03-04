@@ -50,12 +50,13 @@ public:
 	// brushes
 	ID2D1SolidColorBrush *redBrush = NULL;
 	ID2D1SolidColorBrush *blueBrush = NULL;
+	ID2D1SolidColorBrush *cadetBlueBrush = NULL;
 	ID2D1SolidColorBrush *blackBrush = NULL;
 	ID2D1SolidColorBrush *grayBrush = NULL;
 	ID2D1SolidColorBrush *darkGrayBrush = NULL;
 	ID2D1SolidColorBrush *whiteBrush = NULL;
 
-	D2D1_COLOR_F bkgndColor = D2DColor(CornflowerBlue);
+	D2D1_COLOR_F bkgndColor = D2DColor(DarkSlateGray);
 
 	IDWriteFactory* pDWFactory = NULL;
 	IDWriteTextFormat* pTitleText = NULL;

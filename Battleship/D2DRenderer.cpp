@@ -68,6 +68,12 @@ HRESULT D2DRenderer::CreateGraphics(HWND hWnd)
 			_T("Direct2D Error"), MB_OK | MB_ICONERROR);
 		return hr;
 	}
+	if (FAILED(pRT->CreateSolidColorBrush(D2DColor(CadetBlue), &cadetBlueBrush)))
+	{
+		MessageBox(HWND_DESKTOP, _T("ERROR: Failed to Create the Direct2D Solid Color Brush."),
+			_T("Direct2D Error"), MB_OK | MB_ICONERROR);
+		return hr;
+	}
 	if (FAILED(pRT->CreateSolidColorBrush(D2DColor(Black), &blackBrush)))
 	{
 		MessageBox(HWND_DESKTOP, _T("ERROR: Failed to Create the Direct2D Solid Color Brush."),
@@ -163,6 +169,7 @@ void D2DRenderer::DestroyGraphics()
 	SafeRelease(&grayBrush);
 	SafeRelease(&redBrush);
 	SafeRelease(&blueBrush);
+	SafeRelease(&cadetBlueBrush);
 
 	// Release the RenderTarget
 	SafeRelease(&pRT);

@@ -91,7 +91,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			InvalidateRect(hWnd, NULL, true);
 		}
 	}
-	
+	pRenderer->DestroyGraphics();
 
 	return (int) msg.wParam;
 }

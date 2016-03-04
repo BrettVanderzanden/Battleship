@@ -14,46 +14,54 @@ Game::Game()
 	// game
 	topGrid = BVRect(BOARD_LEFT, UPPER_BOARD_TOP, BOARD_RIGHT, UPPER_BOARD_BOTTOM);
 	bottomGrid = BVRect(BOARD_LEFT, LOWER_BOARD_TOP, BOARD_RIGHT, LOWER_BOARD_BOTTOM);
-	infoRectTop = BVRect(0, 0, 400, 30);
+	playerPlacer = BVRect(75, 250, 300, 300);
+	placeShip = BVRect(75, 300, 400, 350);
+	howToRotate = BVRect(100, 370, 400, 420);
+	infoRectTop = BVRect(100, 400, 500, 500);
 	infoRectBottom = BVRect(0, 800, 400, 900);
-	turnInfoRect = BVRect(100, 30, 300, 80);
+	turnInfoRect = BVRect(150, 5, 500, 80);
+	howToPlayText = BVRect(140, 30, 400, 100);
+	howToPlayDesc = BVRect(5, 100, 495, 500);
 	enemyShipsRemaining = BVRect(0, 500, 150, 600);
 	for (size_t i = 0; i < 5; i++)
 	{
 		enemyShipStatus[i].left = BOARD_RIGHT + 5;
 		enemyShipStatus[i].top = UPPER_BOARD_TOP + (float)i * 55;
-		enemyShipStatus[i].right = enemyShipStatus[i].left + 50;
-		enemyShipStatus[i].bottom = enemyShipStatus[i].top + 50;
+		enemyShipStatus[i].right = enemyShipStatus[i].left + 120;
+		enemyShipStatus[i].bottom = enemyShipStatus[i].top + 45;
 	}
-	topTitle = BVRect(BOARD_LEFT - SHIP_SIZE, UPPER_BOARD_TOP - 55, 200, UPPER_BOARD_TOP);
-	bottomTitle = BVRect(BOARD_LEFT - SHIP_SIZE, LOWER_BOARD_TOP - 55, 200, LOWER_BOARD_TOP);
+	topTitle = BVRect(BOARD_LEFT - SHIP_SIZE, UPPER_BOARD_TOP - 60, 200, UPPER_BOARD_TOP);
+	bottomTitle = BVRect(BOARD_LEFT - SHIP_SIZE, LOWER_BOARD_TOP - 60, 200, LOWER_BOARD_TOP);
 	for (size_t i = 0; i < 10; i++)
 	{
-		upperLetters[i].left = BOARD_LEFT + SHIP_SIZE * i;
+		upperLetters[i].left = BOARD_LEFT + SHIP_SIZE * (float)i + 5;
 		upperLetters[i].top = UPPER_BOARD_TOP - SHIP_SIZE;
 		upperLetters[i].right = upperLetters[i].left + SHIP_SIZE;
 		upperLetters[i].bottom = UPPER_BOARD_TOP;
 
-		lowerLetters[i].left = BOARD_LEFT + SHIP_SIZE * i;
+		lowerLetters[i].left = BOARD_LEFT + SHIP_SIZE * (float)i + 5;
 		lowerLetters[i].top = LOWER_BOARD_TOP - SHIP_SIZE;
 		lowerLetters[i].right = lowerLetters[i].left + SHIP_SIZE;
 		lowerLetters[i].bottom = LOWER_BOARD_TOP;
 
 		upperNumbers[i].left = BOARD_LEFT - SHIP_SIZE;
-		upperNumbers[i].top = UPPER_BOARD_TOP + i * SHIP_SIZE;
+		upperNumbers[i].top = UPPER_BOARD_TOP + (float)i * SHIP_SIZE;
 		upperNumbers[i].right = BOARD_LEFT;
 		upperNumbers[i].bottom = upperNumbers[i].top + SHIP_SIZE;
 
 		lowerNumbers[i].left = BOARD_LEFT - SHIP_SIZE;
-		lowerNumbers[i].top = LOWER_BOARD_TOP + i * SHIP_SIZE;
+		lowerNumbers[i].top = LOWER_BOARD_TOP + (float)i * SHIP_SIZE;
 		lowerNumbers[i].right = BOARD_LEFT;
 		lowerNumbers[i].bottom = lowerNumbers[i].top + SHIP_SIZE;
 	}
 	randomize = BVRect(BOARD_RIGHT + 10, LOWER_BOARD_TOP + 100, BOARD_RIGHT + 120, LOWER_BOARD_TOP + 160);
 
+	howToPlay = L"After all ships are positioned, the game plays in a series of rounds.\nEach player takes turns attacking a target square in their\nopponent's grid. Hits are marked with a red peg, and misses are\nmarked with a white peg. When all of the squares of a ship have\nbeen hit, the ship is sunk. If all of a player\'s ships have been sunk,\nthe game is over and their opponent wins.";
 	// gameover
-	newGame = BVRect(50, 300, 150, 400);
-	exitGame = BVRect(200, 300, 350, 400);
+	gameOver = BVRect(120, 10, 330, 70);
+	gameWinnerRect = BVRect(50, 410, 200, 480);
+	newGame = BVRect(310, 410, 390, 480);
+	exitGame = BVRect(400, 410, 480, 480);
 
 	Reset();
 }
@@ -168,7 +176,7 @@ void Game::Click(BVPoint mousePos)
 		case eP1Attack:
 			if (CheckCollision(randomize, mousePos))
 			{
-				RandomizeShips(1);
+				AttackRandom(1);
 				NextPhase();
 			}
 			else
@@ -179,7 +187,7 @@ void Game::Click(BVPoint mousePos)
 		case eP2Attack:
 			if (CheckCollision(randomize, mousePos))
 			{
-				RandomizeShips(1);
+				AttackRandom(0);
 				NextPhase();
 			}
 			else
@@ -223,12 +231,12 @@ void Game::ClickGameplay(BVPoint mousePos, int player)
 	int xPos, yPos;
 	xPos = ((int)mousePos.x - BOARD_LEFT) / (int)SHIP_SIZE;
 	yPos = ((int)mousePos.y - UPPER_BOARD_TOP) / (int)SHIP_SIZE;
-	int target;
+	int target = -2;
 	if (CheckCollision(topGrid, BVPoint(mousePos.x, mousePos.y)))
 	{
 		target = AttackLocation(player, xPos, yPos);
 	}
-	if (!AlreadyAttacked(target))
+	if (target != -2 && !AlreadyAttacked(target))
 	{
 		CheckWin();
 		NextPhase();
@@ -244,6 +252,7 @@ void Game::ClickGameOver(BVPoint mousePos)
 	if (CheckCollision(exitGame, mousePos))
 	{
 		// exit game
+		PostQuitMessage(0);
 	}
 }
 
@@ -301,7 +310,7 @@ int Game::AttackLocation(int player, int x, int y)
 		{
 			GameBoard[enemyPlayer][y][x] = ATTACK_HIT;
 			std::wostringstream notice;
-			notice << L"Player " << player + 1 << " hit " << Ships[enemyPlayer][target].name;
+			notice << L"Player " << player + 1 << " hit " << Ships[enemyPlayer][target].name << " at " << (wchar_t)(x + 65) << y + 1;
 			noticeText[enemyPlayer] = notice.str();
 			DamageShip(enemyPlayer, target);
 		}
@@ -309,7 +318,7 @@ int Game::AttackLocation(int player, int x, int y)
 		{
 			GameBoard[enemyPlayer][y][x] = ATTACK_MISS;
 			std::wostringstream notice;
-			notice << L"Player " << player + 1 << " missed";
+			notice << L"Player " << player + 1 << " missed at " << (wchar_t)(x + 65) << y + 1;
 			noticeText[enemyPlayer] = notice.str();
 		}
 	}
@@ -318,7 +327,17 @@ int Game::AttackLocation(int player, int x, int y)
 
 void Game::AttackRandom(int player)
 {
-
+	BVPoint atkLoc;
+	bool valid = false;
+	while (!valid)
+	{
+		atkLoc = BVPoint(float(rand() % 10), float(rand() % 10));
+		if (ValidAttackPosition(player, (int)atkLoc.x, (int)atkLoc.y))
+		{
+			AttackLocation(player ^ 1, (int)atkLoc.x, (int)atkLoc.y);
+			valid = true;
+		}
+	}
 }
 
 bool Game::ValidAttackPosition(int player, int x, int y)
@@ -334,6 +353,7 @@ bool Game::ValidAttackPosition(int player, int x, int y)
 			return true;
 		}
 	}
+	return false;
 }
 
 bool Game::AlreadyAttacked(int target)
@@ -467,7 +487,7 @@ void Game::AIAttack()
 		bool valid = false;
 		while (!valid)
 		{
-			atkLoc = BVPoint(rand() % 10, rand() % 10);
+			atkLoc = BVPoint(float(rand() % 10), float(rand() % 10));
 			if (ValidAttackPosition(0, (int)atkLoc.x, (int)atkLoc.y))
 			{
 				target = AttackLocation(1, (int)atkLoc.x, (int)atkLoc.y);
@@ -536,20 +556,21 @@ void Game::Render(HWND hWnd)
 	}
 	else
 	{
-		if (currentPhase == eP1Placement || currentPhase == eP2Placement)
+		switch (currentPhase)
 		{
-			DrawPlacementPhase();
-		}
-		else if (currentPhase == eP1Attack)
-		{
+		case eP1Placement:
+			DrawPlacementPhase(0);
+			break;
+		case eP2Placement:
+			DrawPlacementPhase(1);
+			break;
+		case eP1Attack:
 			DrawGameplay(0);
-		}
-		else if (currentPhase == eP2Attack)
-		{
+			break;
+		case eP2Attack:
 			DrawGameplay(1);
-		}
-		else if (currentPhase == eGameOver)
-		{
+			break;
+		case eGameOver:
 			if (currentMode == eTwoPlayer)
 			{
 				DrawGameplay(winner);
@@ -559,6 +580,9 @@ void Game::Render(HWND hWnd)
 				DrawGameplay(0);
 			}
 			DrawGameOver();
+			break;
+		default:
+			break;
 		}
 	}
 	///////////////////////////////////////////////////
@@ -603,14 +627,21 @@ void Game::DrawMenu()
 	pRenderer->pRT->DrawTextW(L"Two Player", 10, pRenderer->pInfoText, twoPlayerButton.D2D(), pRenderer->blackBrush);
 }
 
-void Game::DrawPlacementPhase()
+void Game::DrawPlacementPhase(int player)
 {
+	std::wostringstream playerUp;
+	playerUp << L"Player " << player + 1;
+	pRenderer->pRT->DrawTextW(playerUp.str().c_str(), playerUp.str().length(), pRenderer->pInfoText, playerPlacer.D2D(), pRenderer->blackBrush);
+
 	std::wostringstream shipToPlace;
 	shipToPlace << L"Place " << Ships[0][currentShipToPlace].name << L" on the board.";
 	std::wstring howTo = L"Press SPACE to rotate.";
-	pRenderer->pRT->DrawTextW(howTo.c_str(), howTo.length(), pRenderer->pInfoText, infoRectTop.D2D(), pRenderer->blackBrush);
-	pRenderer->pRT->DrawTextW(shipToPlace.str().c_str(), shipToPlace.str().length(), pRenderer->pInfoText, infoRectBottom.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->DrawTextW(shipToPlace.str().c_str(), shipToPlace.str().length(), pRenderer->pInfoText, placeShip.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->DrawTextW(howTo.c_str(), howTo.length(), pRenderer->pInfoText, howToRotate.D2D(), pRenderer->blackBrush);
 	pRenderer->pRT->DrawTextW(L"Your board", 10, pRenderer->pInfoText, bottomTitle.D2D(), pRenderer->blackBrush);
+
+	// blue
+	pRenderer->pRT->FillRectangle(bottomGrid.D2D(), pRenderer->cadetBlueBrush);
 
 	// grid
 	for (size_t i = 0; i < 11; i++)
@@ -655,6 +686,10 @@ void Game::DrawPlacementPhase()
 		}
 	}
 
+	// how to play
+	pRenderer->pRT->DrawTextW(L"How to play", 11, pRenderer->pTitleText, howToPlayText.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->DrawTextW(howToPlay.c_str(), howToPlay.length(), pRenderer->pSmallText, howToPlayDesc.D2D(), pRenderer->blackBrush);
+
 	// randomize
 	pRenderer->pRT->FillRectangle(randomize.D2D(), pRenderer->blueBrush);
 	pRenderer->pRT->DrawTextW(L"Randomize", 9, pRenderer->pInfoText, randomize.D2D(), pRenderer->blackBrush);
@@ -674,6 +709,10 @@ void Game::DrawGameplay(int player)
 	std::wostringstream turnInfo;
 	turnInfo << L"Player " << player + 1  << "'s turn";
 	pRenderer->pRT->DrawTextW(turnInfo.str().c_str(), turnInfo.str().length(), pRenderer->pInfoText, turnInfoRect.D2D(), pRenderer->blackBrush);
+
+	// blue
+	pRenderer->pRT->FillRectangle(bottomGrid.D2D(), pRenderer->cadetBlueBrush);
+	pRenderer->pRT->FillRectangle(topGrid.D2D(), pRenderer->cadetBlueBrush);
 
 	// upper grid
 	for (size_t i = 0; i < 11; i++)
@@ -784,15 +823,14 @@ void Game::DrawGameplay(int player)
 
 void Game::DrawGameOver()
 {
-	pRenderer->pRT->FillRectangle(newGame.D2D(), pRenderer->blueBrush);
-	pRenderer->pRT->FillRectangle(exitGame.D2D(), pRenderer->blueBrush);
-	pRenderer->pRT->DrawTextW(L"Game Over", 10, pRenderer->pTitleText, titleRect.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->FillRectangle(newGame.D2D(), pRenderer->redBrush);
+	pRenderer->pRT->FillRectangle(exitGame.D2D(), pRenderer->redBrush);
+	pRenderer->pRT->FillRectangle(gameOver.D2D(), pRenderer->redBrush);
+	pRenderer->pRT->FillRectangle(gameWinnerRect.D2D(), pRenderer->redBrush);
+	pRenderer->pRT->DrawTextW(L"Game Over", 10, pRenderer->pTitleText, gameOver.D2D(), pRenderer->blackBrush);
 	std::wostringstream winnerstring;
 	winnerstring << L"Player  " << (winner + 1) << L" wins!";
-	D2D1_RECT_F winnerRect = titleRect.D2D();
-	winnerRect.top += 60;
-	winnerRect.bottom += 30;
-	pRenderer->pRT->DrawTextW(winnerstring.str().c_str(), winnerstring.str().size() , pRenderer->pInfoText, winnerRect, pRenderer->blackBrush);
-	pRenderer->pRT->DrawTextW(L"New Game", 8, pRenderer->pInfoText, newGame.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->DrawTextW(winnerstring.str().c_str(), winnerstring.str().size() , pRenderer->pInfoText, gameWinnerRect.D2D(), pRenderer->blackBrush);
+	pRenderer->pRT->DrawTextW(L"New\nGame", 8, pRenderer->pInfoText, newGame.D2D(), pRenderer->blackBrush);
 	pRenderer->pRT->DrawTextW(L"Exit", 4, pRenderer->pInfoText, exitGame.D2D(), pRenderer->blackBrush);
 }
